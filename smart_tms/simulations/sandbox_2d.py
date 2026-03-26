@@ -381,7 +381,12 @@ class GameTrafficDashboard(tk.Tk):
                     if v.is_emergency:
                         self.canvas.delete(v.beacon)
                         self.controller.emergency[v.road_origin] = False
-                    self.vehicles.remove(v)
+                        # Notify backend that emergency is over
+                        try:
+                            requests.post(f"http://127.0.0.1:5000/api/override", 
+                                          json={"road": v.road_origin, "status": False}, timeout=0.1)
+                        except: pass
+                        self.vehicles.remove(v)
             
             # 4. Smart Math Live Update
             # Count actively queued cars (cars sitting at red light)

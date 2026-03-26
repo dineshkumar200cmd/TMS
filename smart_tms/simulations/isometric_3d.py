@@ -205,7 +205,13 @@ class Vehicle:
         # Off-screen
         if not (-2 < self.tx < GRID+2 and -2 < self.ty < GRID+2):
             self.alive = False
-            if self.emg: self.ai.emergency[self.road] = False
+            if self.emg: 
+                self.ai.emergency[self.road] = False
+                # Notify backend that emergency is over
+                try:
+                    requests.post(f"http://127.0.0.1:5000/api/override", 
+                                  json={"road": self.road, "status": False}, timeout=0.1)
+                except: pass
 
     # ─ draw ───────────────────────────────────────────────────────────────────
     def draw(self, surf, tick):
