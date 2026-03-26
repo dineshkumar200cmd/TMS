@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Management Dashboard</title>
+    <!-- Use Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                        <path d="M2 12h20"></path>
+                    </svg>
+                </div>
+                <h1>Smart TMS</h1>
+            </div>
+            
+            <nav class="junction-list">
+                <p class="nav-title">CONTROL ZONES</p>
+                <ul id="nav-items">
+                    <!-- Nav items injected via JS -->
+                </ul>
+            </nav>
+            
+            <div class="system-status">
+                <div class="status-indicator active"></div>
+                <span>System Online</span>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="current-selection">
+                    <h2 id="current-junction-name">Select a Junction</h2>
+                    <p class="subtitle" id="current-junction-status">Loading feed...</p>
+                </div>
+                <div class="controls">
+                    <div class="timeframe-toggle">
+                        <button class="toggle-btn active" data-time="0">Current</button>
+                        <button class="toggle-btn" data-time="5">+ 5 Secs</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-grid">
+                <!-- Large Video/Image Feed -->
+                <div class="feed-panel glass-panel">
+                    <div class="feed-header">
+                        <h3>Live Traffic Surveillance</h3>
+                        <span class="badge live">LIVE</span>
+                    </div>
+                    <div class="feed-container">
+                        <img id="camera-feed" src="" alt="Select a junction to view camera feed">
+                        <div class="feed-overlay">
+                            <div class="crosshairs"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics and Status Widget -->
+                <div class="metrics-panel">
+                    <div class="glass-panel stat-card">
+                        <h3>Congestion Severity</h3>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="congestion-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span>Low</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel status-card">
+                        <h3>Est. Red Light Delay</h3>
+                        <div class="delay-time">
+                            <span id="delay-amount">0.0</span>
+                            <span class="unit">Mins</span>
+                        </div>
+                        <p class="delay-desc">Required delay adapted dynamically to disperse local congestion.</p>
+                    </div>
+                    
+                    <div class="glass-panel alert-card">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-text">
+                            <h4>Dynamic Routing Active</h4>
+                            <p>Adjacent intersections are being throttled automatically.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script loading -->
+    <script src="./app.js"></script>
+</body>
+</html>

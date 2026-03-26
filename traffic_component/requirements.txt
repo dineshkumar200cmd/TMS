@@ -1,0 +1,5 @@
+pandas
+herepy
+pillow
+numpy
+# json
