@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traffic Video — Vehicle Detection &amp; Signal Logic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050810;
+      --panel: rgba(14, 18, 32, 0.92);
+      --cyan: #00e5ff;
+      --green: #00e676;
+      --yellow: #ffd600;
+      --red: #ff1744;
+      --muted: #6b7a99;
+      --border: rgba(0, 229, 255, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 80, 120, 0.25), var(--bg));
+      color: #e8f0ff;
+      font-family: 'Outfit', system-ui, sans-serif;
+      padding: 20px 24px 32px;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--cyan);
+      text-shadow: 0 0 24px rgba(0, 229, 255, 0.35);
+    }
+    h1 span { color: var(--muted); font-weight: 400; font-size: 0.85rem; display: block; margin-top: 4px; letter-spacing: 0.02em; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(0, 229, 255, 0.06);
+      color: var(--cyan);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn:hover { background: rgba(0, 229, 255, 0.14); transform: translateY(-1px); }
+    .btn.on { border-color: var(--green); color: var(--green); background: rgba(0, 230, 118, 0.1); }
+    .btn.link { text-decoration: none; color: var(--muted); border-color: rgba(255,255,255,0.1); }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr minmax(300px, 380px);
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    .feeds-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      position: relative;
+      min-height: 320px;
+    }
+    .feeds-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 600px) {
+      .feeds-grid { grid-template-columns: 1fr; }
+    }
+    .feed-cell {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #020408;
+      border: 1px solid rgba(0, 229, 255, 0.1);
+      aspect-ratio: 16 / 10;
+    }
+    .feed-cell .feed-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      padding: 6px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, rgba(5, 8, 20, 0.92), transparent);
+      color: var(--cyan);
+      pointer-events: none;
+    }
+    .feed-cell img.feed-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .video-placeholder {
+      position: absolute;
+      inset: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 24px;
+      text-align: center;
+      background: linear-gradient(145deg, #060a14, #0a1020);
+      border-radius: 10px;
+      z-index: 3;
+    }
+    .video-placeholder p { color: var(--muted); font-size: 0.9rem; max-width: 380px; line-height: 1.5; }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 23, 68, 0.15);
+      color: #ff8a80;
+      letter-spacing: 0.06em;
+    }
+    .badge.ok { background: rgba(0, 230, 118, 0.12); color: var(--green); }
+    aside {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .card h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .phase {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+    .phase strong { color: var(--cyan); }
+    .phase .state-green { color: var(--green); text-shadow: 0 0 12px rgba(0, 230, 118, 0.4); }
+    .phase .state-yellow { color: var(--yellow); }
+    .phase .state-red { color: var(--red); }
+    .formula {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #a8c4e8;
+      line-height: 1.6;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 8px;
+      border: 1px dashed rgba(0, 229, 255, 0.2);
+    }
+    .eff-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .eff-val {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green);
+      text-shadow: 0 0 20px rgba(0, 230, 118, 0.35);
+    }
+    .eff-val.na { color: var(--muted); font-size: 1.2rem; text-shadow: none; }
+    .eff-note { font-size: 0.78rem; color: var(--muted); margin-top: 8px; line-height: 1.45; }
+    .roads {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .road {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .road.active { border-color: rgba(0, 230, 118, 0.35); box-shadow: 0 0 16px rgba(0, 230, 118, 0.08); }
+    .road-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .road-name { font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em; }
+    .lights {
+      display: flex;
+      gap: 4px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #1a2332;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
+    }
+    .dot.on.r { background: var(--red); box-shadow: 0 0 8px var(--red); }
+    .dot.on.y { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+    .dot.on.g { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .road-stat {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .road-stat b { color: #e8f0ff; }
+    .bars { margin-top: 10px; }
+    .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; }
+    .bar-row span:first-child { width: 52px; color: var(--muted); }
+    .bar-bg {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #448aff, var(--green));
+      transition: width 0.4s ease;
+    }
+    .bar-fill.fixed { background: rgba(120, 130, 160, 0.5); }
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Four road cameras &amp; AI signals <span>One stream per approach · vehicle boxes · green time from counts</span></h1>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn" id="btn-cv" title="Requires Smart TMS backend on port 5000">Start CV engine</button>
+      <a class="btn link" href="/smart_tms/frontend/index.html">Smart TMS</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="feeds-panel" id="video-section">
+      <div class="feeds-grid" id="feeds-grid" aria-label="Four road video feeds">
+        <div class="feed-cell" data-road="North">
+          <div class="feed-label">North · roadside / top view</div>
+          <img class="feed-img" id="live-feed-North" alt="North road traffic" style="display:none;" />
+        </div>
+        <div class="feed-cell" data-road="East">
+          <div class="feed-label">East · roadside / top view</div>
+          <img class="feed-img" id="live-feed-East" alt="East road traffic" style="display:none;" />
+        </div>
+        <div class="feed-cell" data-road="West">
+          <div class="feed-label">West · roadside / top view</div>
+          <img class="feed-img" id="live-feed-West" alt="West road traffic" style="display:none;" />
+        </div>
+        <div class="feed-cell" data-road="South">
+          <div class="feed-label">South · roadside / top view</div>
+          <img class="feed-img" id="live-feed-South" alt="South road traffic" style="display:none;" />
+        </div>
+      </div>
+      <div class="video-placeholder" id="feed-placeholder">
+        <span class="badge" id="cv-badge">CV engine off</span>
+        <p id="placeholder-text">Start the CV engine for four independent feeds (N / E / W / S). Each uses its own video file; Haar cascades draw boxes on vehicles for counts that drive the signal timings.</p>
+      </div>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h2>Current signal phase</h2>
+        <div class="phase" id="phase-text">Loading…</div>
+      </div>
+
+      <div class="card">
+        <h2>Efficiency vs fixed 30s</h2>
+        <div class="eff-row">
+          <div>
+            <div class="eff-val na" id="eff-pct">—</div>
+            <div class="eff-note" id="eff-note">When vehicles are detected, we compare weighted green time from AI vs a fixed 30s-per-road baseline.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Logic</h2>
+        <p class="formula" id="formula-text">Green<sub>road</sub> = (vehicles<sub>road</sub> / total) × cycle seconds · min 5s if queue &gt; 0</p>
+      </div>
+
+      <div class="card">
+        <h2>Per-road detection &amp; allocation</h2>
+        <div class="roads" id="roads-grid"></div>
+        <div class="bars" id="bars-wrap"></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    Use your own clips: put <code style="color:var(--cyan)">north_road.mp4</code>, <code style="color:var(--cyan)">south_road.mp4</code>, <code style="color:var(--cyan)">east_road.mp4</code>, <code style="color:var(--cyan)">west_road.mp4</code> in <code style="color:var(--cyan)">videos/</code> (or project root). See <code style="color:var(--cyan)">road_video_config.py</code>. Run <code style="color:var(--cyan)">bash run.sh</code> · API port 5000 · <code style="color:var(--cyan)">cars.xml</code> in project root.
+  </footer>
+
+  <script>
+(function () {
+  const ROADS = ['North', 'South', 'East', 'West'];
+  const API_BASE =
+    window.location.protocol === 'file:' || !window.location.hostname
+      ? 'http://127.0.0.1:5000'
+      : window.location.protocol + '//' + window.location.hostname + ':5000';
+
+  const el = (id) => document.getElementById(id);
+  function feedImg(road) {
+    return el('live-feed-' + road);
+  }
+  const placeholder = el('feed-placeholder');
+  const btnCv = el('btn-cv');
+  const phaseText = el('phase-text');
+  const effPct = el('eff-pct');
+  const effNote = el('eff-note');
+  const cvBadge = el('cv-badge');
+  const formulaText = el('formula-text');
+  const roadsGrid = el('roads-grid');
+  const barsWrap = el('bars-wrap');
+
+  function buildRoadCards() {
+    roadsGrid.innerHTML = '';
+    ROADS.forEach((r) => {
+      const d = document.createElement('div');
+      d.className = 'road';
+      d.id = 'road-' + r;
+      d.innerHTML =
+        '<div class="road-head">' +
+        '<span class="road-name">' + r + '</span>' +
+        '<div class="lights" data-road="' + r + '">' +
+        '<span class="dot" data-c="r"></span><span class="dot" data-c="y"></span><span class="dot" data-c="g"></span>' +
+        '</div></div>' +
+        '<div class="road-stat" id="stat-' + r + '">Vehicles: <b>0</b> · Green: <b>30</b>s</div>';
+      roadsGrid.appendChild(d);
+    });
+    barsWrap.innerHTML = '';
+    ROADS.forEach((r) => {
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML =
+        '<span>' + r[0] + '</span><div class="bar-bg"><div class="bar-fill" id="bar-' + r + '" style="width:0%"></div></div>';
+      barsWrap.appendChild(row);
+    });
+  }
+
+  function setLights(road, state) {
+    const box = document.querySelector('.lights[data-road="' + road + '"]');
+    if (!box) return;
+    box.querySelectorAll('.dot').forEach((dot) => dot.classList.remove('on', 'r', 'y', 'g'));
+    if (state === 'GREEN') box.querySelector('[data-c="g"]').classList.add('on', 'g');
+    else if (state === 'YELLOW') box.querySelector('[data-c="y"]').classList.add('on', 'y');
+    else box.querySelector('[data-c="r"]').classList.add('on', 'r');
+  }
+
+  function computeEfficiency(counts, gt, cycle) {
+    const tot = ROADS.reduce((s, r) => s + counts[r], 0);
+    if (tot === 0) return { pct: null, label: 'No vehicles detected — default 30s per road.' };
+    const smart = ROADS.reduce((s, r) => s + gt[r] * Math.max(counts[r], 1), 0);
+    const fixedWeight = 30 * tot;
+    const pct = Math.min(Math.max(0, ((fixedWeight - smart) / fixedWeight) * 100), 65);
+    return {
+      pct: pct.toFixed(0),
+      label: 'Positive % means AI allocates less wasted green than giving every queued direction a full 30s slice.',
+    };
+  }
+
+  async function fetchStatus() {
+    const res = await fetch(API_BASE + '/api/status');
+    if (!res.ok) throw new Error('status ' + res.status);
+    return res.json();
+  }
+
+  async function toggleCv() {
+    try {
+      const res = await fetch(API_BASE + '/api/launch/cv_processor', { method: 'POST' });
+      if (!res.ok) throw new Error('launch failed');
+      await refresh();
+    } catch (e) {
+      console.error(e);
+      phaseText.innerHTML = '<span class="state-red">Backend unreachable. Start <code>run.sh</code> or <code>python smart_tms/backend/app.py</code> on port 5000.</span>';
+    }
+  }
+
+  async function refresh() {
+    let data;
+    try {
+      data = await fetchStatus();
+    } catch (e) {
+      phaseText.innerHTML = '<span class="state-red">Cannot reach API at ' + API_BASE + '</span>';
+      cvBadge.textContent = 'API offline';
+      cvBadge.className = 'badge';
+      return;
+    }
+
+    const counts = data.controller.vehicle_counts;
+    const gt = data.controller.calculated_green_times;
+    const cycle = data.controller.cycle_time != null ? data.controller.cycle_time : 120;
+    const eng = data.engine;
+    const cvOn = data.cv_active;
+
+    formulaText.textContent =
+      'Green_road = (vehicles_road / total_vehicles) × ' +
+      cycle +
+      's — minimum 5s when count &gt; 0; 30s each when total = 0.';
+
+    btnCv.textContent = cvOn ? 'CV engine: ON' : 'CV engine: OFF';
+    btnCv.classList.toggle('on', cvOn);
+
+    if (cvOn) {
+      cvBadge.textContent = '4 live road feeds';
+      cvBadge.className = 'badge ok';
+      placeholder.style.display = 'none';
+      ROADS.forEach((r) => {
+        const img = feedImg(r);
+        if (!img) return;
+        img.style.display = 'block';
+        const url = API_BASE + '/api/video_feed/' + encodeURIComponent(r);
+        if (!img.dataset.streamUrl || img.dataset.streamUrl !== url) {
+          img.dataset.streamUrl = url;
+          img.src = url + '?' + Date.now();
+        }
+      });
+    } else {
+      cvBadge.textContent = 'CV engine off';
+      cvBadge.className = 'badge';
+      placeholder.style.display = 'flex';
+      ROADS.forEach((r) => {
+        const img = feedImg(r);
+        if (!img) return;
+        img.style.display = 'none';
+        img.removeAttribute('src');
+        delete img.dataset.streamUrl;
+      });
+    }
+
+    const active = eng.active_road;
+    const st = eng.state;
+    const tl = eng.time_left;
+
+    ROADS.forEach((r) => {
+      const isAct = r === active;
+      const lightState = isAct ? st : 'RED';
+      const roadEl = el('road-' + r);
+      if (roadEl) {
+        roadEl.classList.toggle('active', isAct && (st === 'GREEN' || st === 'YELLOW'));
+      }
+      setLights(r, lightState);
+
+      const sEl = el('stat-' + r);
+      if (sEl) {
+        sEl.innerHTML =
+          'Vehicles: <b>' +
+          counts[r] +
+          '</b> · Allocated green: <b>' +
+          gt[r] +
+          '</b>s';
+      }
+
+      const bar = el('bar-' + r);
+      if (bar) bar.style.width = Math.min(100, (gt[r] / cycle) * 100) + '%';
+    });
+
+    const cls =
+      st === 'GREEN' ? 'state-green' : st === 'YELLOW' ? 'state-yellow' : 'state-red';
+    phaseText.innerHTML =
+      'Road <strong>' +
+      active +
+      '</strong> · <span class="' +
+      cls +
+      '">' +
+      st +
+      '</span> · <strong>' +
+      tl +
+      's</strong> left';
+
+    const eff = computeEfficiency(counts, gt, cycle);
+    if (eff.pct == null) {
+      effPct.textContent = '—';
+      effPct.className = 'eff-val na';
+      effNote.textContent = eff.label;
+    } else {
+      effPct.textContent = '+' + eff.pct + '%';
+      effPct.className = 'eff-val';
+      effNote.textContent = eff.label;
+    }
+  }
+
+  buildRoadCards();
+  btnCv.addEventListener('click', toggleCv);
+  setInterval(refresh, 500);
+  refresh();
+})();
+  </script>
+</body>
+</html>

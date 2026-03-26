@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Management Dashboard</title>
+    <!-- Use Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css?v=2">
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                        <path d="M2 12h20"></path>
+                    </svg>
+                </div>
+                <h1>Smart TMS</h1>
+            </div>
+            
+            <nav class="junction-list">
+                <p class="nav-title">CONTROL ZONES</p>
+                <ul id="nav-items">
+                    <!-- Nav items injected via JS -->
+                </ul>
+            </nav>
+            
+            <div class="system-status">
+                <div class="status-indicator active"></div>
+                <span>System Online</span>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="current-selection">
+                    <h2 id="current-junction-name">Select a Junction</h2>
+                    <p class="subtitle" id="current-junction-status">Loading feed...</p>
+                </div>
+                <div class="controls">
+                    <div class="timeframe-toggle" style="display:flex; gap:10px;">
+                        <button class="toggle-btn" id="btn-2d">Launch 2D Sandbox</button>
+                        <button class="toggle-btn" id="btn-topdown" style="color:var(--accent-blue); border-color:var(--accent-blue);" onclick="window.open('/traffic_video.html', '_blank')">Traffic video</button>
+                        <button class="toggle-btn" id="btn-3d" style="color:var(--accent-blue); border-color:var(--accent-blue);" onclick="window.open('/traffic_3d.html', '_blank')">3D Simulation</button>
+                        <button class="toggle-btn" id="btn-cv">Toggle CV Core</button>
+                        <button class="toggle-btn" id="btn-emergency" style="background: rgba(255, 23, 68, 0.1); border-color: var(--status-critical); color: var(--status-critical); font-weight: 800;">EMERGENCY OVERRIDE</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-grid">
+                <!-- Large Video/Image Feed -->
+                <div class="feed-panel glass-panel">
+                    <div class="feed-header">
+                        <h3>Live Traffic Surveillance</h3>
+                        <span class="badge live">LIVE</span>
+                    </div>
+                    <div class="feed-container" style="position:relative; width:100%; height:500px; border-radius:12px; overflow:hidden; background:linear-gradient(135deg, #020408, #050810);">
+                        <img id="live-cv-feed" src="" style="width:100%; height:100%; object-fit:cover; display:none; position:absolute; z-index:10;" />
+                        <div style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:5;">
+                            <div class="brand-icon" style="margin-bottom:20px; color:var(--accent-blue); animation:pulse 2s infinite;">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                            <h2 id="camera-feed-placeholder" style="color:var(--text-primary); font-size:1.5rem; font-weight:800; letter-spacing:2px; text-shadow:0 0 10px rgba(0,229,255,0.5);">A.I. CAMERA FEED OFFLINE</h2>
+                            <p style="color:var(--text-secondary); margin-top:10px; font-size:0.9rem;">Awaiting incoming surveillance streams...</p>
+                        </div>
+                    </div>
+                    <div class="feed-overlay">
+                        <div class="crosshairs"></div>
+                    </div>
+                </div>
+
+                <!-- Metrics and Status Widget -->
+                <div class="metrics-panel">
+                    <div class="glass-panel stat-card">
+                        <h3>Congestion Severity</h3>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="congestion-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span>Low</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel status-card">
+                        <h3>Est. Red Light Delay</h3>
+                        <div class="delay-time">
+                            <span id="delay-amount">0.0</span>
+                            <span class="unit">Mins</span>
+                        </div>
+                        <p class="delay-desc">Required delay adapted dynamically to disperse local congestion.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script loading -->
+    <script src="./app.js?v=3"></script>
+</body>
+</html>
