@@ -25,17 +25,24 @@ class SmartTrafficController:
         self.api_url = "http://127.0.0.1:5000/api"
 
     def fetch_api_state(self):
+        """Poll the central server and detect new emergencies."""
+        new_emergencies = []
         try:
-            # Poll the central server
             resp = requests.get(f"{self.api_url}/status", timeout=0.5).json()
-            self.calculated_green_times = resp['controller']['calculated_green_times']
-            self.emergency = resp['controller']['emergency']
+            latest_emg = resp['controller']['emergency']
             
+            for r in self.roads:
+                if latest_emg[r] and not self.emergency[r]:
+                    new_emergencies.append(r)
+            
+            self.calculated_green_times = resp['controller']['calculated_green_times']
+            self.emergency = latest_emg
             self.current_active_road = resp['engine']['active_road']
             self.state = resp['engine']['state']
             self.time_left = resp['engine']['time_left']
-        except Exception as e:
-            print("API Error:", e)
+        except:
+            pass
+        return new_emergencies
             
     def push_mock_data(self, road, count):
         """Pushes sandbox spawned vehicles to the global API."""
@@ -325,12 +332,14 @@ class GameTrafficDashboard(tk.Tk):
                 time.sleep(1)
         threading.Thread(target=burst, daemon=True).start()
 
-    def spawn_emergency(self, road):
+    def spawn_emergency(self, road, push_api=True):
         self.spawn_vehicle(road, is_emergency=True)
         # Tell the global backend immediately
-        try:
-            requests.post(f"http://127.0.0.1:5000/api/override", json={"road": road, "status": True}, timeout=0.5)
-        except: pass
+        if push_api:
+            try:
+                requests.post(f"http://127.0.0.1:5000/api/override", 
+                              json={"road": road, "status": True}, timeout=0.5)
+            except: pass
 
     def physics_loop(self):
         """60 FPS Game Loop updating all Vehicles positions."""
@@ -398,7 +407,9 @@ class GameTrafficDashboard(tk.Tk):
             
             # Since we deleted traffic_light_loop, we just sync UI right here in the master loop
             if self.simulation_running:
-                self.controller.fetch_api_state()
+                new_emgs = self.controller.fetch_api_state()
+                for road in new_emgs:
+                    self.spawn_emergency(road, push_api=False)
                 self.after(0, self.update_light_ui)
                 self.after(0, self.update_graphs)
 

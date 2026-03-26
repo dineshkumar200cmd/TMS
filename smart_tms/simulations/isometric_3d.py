@@ -100,16 +100,25 @@ class TrafficAI:
         self.api_url    = "http://127.0.0.1:5000/api"
 
     def recalculate(self):
-        """Fetch live state from API instead of calculating locally."""
+        """Fetch live state from API and detect new emergency triggers."""
+        new_emergencies = []
         try:
-            resp = requests.get(f"{self.api_url}/status", timeout=0.1).json()
+            resp = requests.get(f"{self.api_url}/status", timeout=0.15).json()
+            latest_emg = resp['controller']['emergency']
+            
+            # Detect transitions from False -> True
+            for r in self.ROADS:
+                if latest_emg[r] and not self.emergency[r]:
+                    new_emergencies.append(r)
+
             self.green_times = resp['controller']['calculated_green_times']
-            self.emergency = resp['controller']['emergency']
-            self.active = resp['engine']['active_road']
-            self.state = resp['engine']['state']
+            self.emergency = latest_emg
+            self.active    = resp['engine']['active_road']
+            self.state     = resp['engine']['state']
             self.time_left = resp['engine']['time_left']
         except:
             pass
+        return new_emergencies
             
     def push_waiting(self, road, count):
         try:
@@ -510,12 +519,18 @@ class TrafficGame:
             pygame.draw.polygon(s, P["marking"], [p1,p2,p3,p4])
 
     def _signal_loop(self):
-        """Continuously pulls from the backend instead of managing internal state."""
+        """Continuously pulls from the backend and reacts to state changes."""
         while True:
+            # Always check for emergency triggers, even if simulation is paused
+            new_emgs = self.ai.recalculate()
+            for road in new_emgs:
+                self.spawn(road, emg=True, push_api=False)
+                
             if not self.running:
                 self.ai.state = "RED"
-                time.sleep(0.3); continue
-            self.ai.recalculate()
+                time.sleep(0.4)
+                continue
+                
             time.sleep(0.5)
 
     def _auto_spawn(self):
@@ -525,13 +540,15 @@ class TrafficGame:
                 self.vehicles.append(Vehicle(road, self.ai))
             time.sleep(2.8)
 
-    def spawn(self, road, emg=False):
+    def spawn(self, road, emg=False, push_api=True):
         self.vehicles.append(Vehicle(road, self.ai, emg))
         if emg: 
             self.ai.emergency[road] = True
-            try:
-                requests.post(f"http://127.0.0.1:5000/api/override", json={"road": road, "status": True}, timeout=0.1)
-            except: pass
+            if push_api:
+                try:
+                    requests.post(f"http://127.0.0.1:5000/api/override", 
+                                  json={"road": road, "status": True}, timeout=0.1)
+                except: pass
 
     def _road_state(self, road):
         if not self.running: return "RED"
