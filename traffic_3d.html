@@ -678,6 +678,8 @@
       <button class="btn btn-emg" onclick="spawnE('West')">🚑 W</button>
       <div class="sep"></div>
       <button class="btn btn-spawn" onclick="floodAll()">⊕ FLOOD ALL</button>
+      <div class="sep"></div>
+      <button class="btn btn-emg" onclick="spawnEmergency()">🚨 EMERGENCY</button>
       <div id="fps-disp">60 FPS</div>
     </div>
   </div>
@@ -1146,19 +1148,32 @@
     }
     function spawnE(road) {
       // Remove any stuck old ambulance first so re-pressing always works
-      if (ai.emg[road]) {
-        const old = vehicles.find(v => v.emg && v.road === road);
-        if (old) old.alive = false;
-        ai.emg[road] = false;
-      }
+      const oldEmg = vehicles.find(v => v.emg && v.road === road);
+      if (oldEmg) oldEmg.alive = false;
+
       ai.emg[road] = true;
-      vehicles.push(new Vehicle(road, true));
+      // Create ambulance with custom spawn position closer to intersection
+      const amb = new Vehicle(road, true);
+      // Spawn much closer so you can see it immediately
+      const RL = ROAD_LEN();
+      switch (road) {
+        case 'North': amb.wy = -200 - Math.random() * 100; break;
+        case 'South': amb.wy = +200 + Math.random() * 100; break;
+        case 'East': amb.wx = +200 + Math.random() * 100; break;
+        case 'West': amb.wx = -200 - Math.random() * 100; break;
+      }
+      vehicles.push(amb);
       // Auto-start sim so ambulance immediately gets a green signal
       if (!ai.running) { ai.running = true; sigLoop(); }
       document.getElementById('emg-banner').style.display = 'block';
+      console.log('🚑 Ambulance spawned from:', road, 'Total vehicles:', vehicles.length);
     }
     function floodAll() {
       ROADS.forEach(r => { for (let i = 0; i < 5; i++) spawnV(r); });
+    }
+    function spawnEmergency() {
+      const r = ROADS[Math.floor(Math.random() * 4)];
+      spawnE(r);
     }
 
     setInterval(() => {
