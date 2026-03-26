@@ -26,14 +26,40 @@ Suggested target folders if you continue organizing:
 - `data/` for local datasets/assets (ignored)
 - `tests/` for test code
 
-## Getting Started
+## Setup and Running
 
-1. Create and activate a virtual environment.
-2. Install dependencies (create a `requirements.txt` or `pyproject.toml` if missing).
-3. Run backend/frontend/simulations from the `smart_tms/` subfolders.
+### New Device Setup
 
-## Next Cleanup Steps
+To run this project on a new device, follow these steps:
 
-- Move root scripts into `smart_tms/simulations/` or `scripts/`.
-- Add dependency management file (`requirements.txt` or `pyproject.toml`).
-- Add basic tests under `tests/`.
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/dineshkumar200cmd/TMS.git
+    cd TMS
+    ```
+
+2.  **Create a Virtual Environment**:
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3.  **Install Dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+### How to Run
+
+You can start all services (backends and dashboards) using the included helper script:
+
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+### Accessing Dashboards
+
+- **3D Traffic Simulation**: [http://localhost:8000/traffic_3d.html](http://localhost:8000/traffic_3d.html)
+- **AI Signal Dashboard**: [http://localhost:8000/traffic_video.html](http://localhost:8000/traffic_video.html)
+- **Smart TMS Dashboard**: [http://localhost:8000/smart_tms/frontend/index.html](http://localhost:8000/smart_tms/frontend/index.html)
