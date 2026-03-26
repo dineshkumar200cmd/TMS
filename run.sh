@@ -16,7 +16,7 @@ AI_PID=$!
 
 # Start Traffic Feed Backend
 echo "Starting Traffic Feed Backend (Port 5001)..."
-python venv/traffic/backend/app.py > /dev/null 2>&1 &
+python traffic_component/backend/app.py > /dev/null 2>&1 &
 FEED_PID=$!
 
 echo "✅ All services started successfully!"
@@ -25,7 +25,7 @@ echo "🔗 Access the dashboards here:"
 echo "1. Top-Down 3D Simulation:       http://localhost:8000/traffic_3d.html"
 echo "2. Traffic Video + AI signals:     http://localhost:8000/traffic_video.html"
 echo "3. Smart TMS Dashboard:            http://localhost:8000/smart_tms/frontend/index.html"
-echo "4. Traffic Feed Dashboard:         http://localhost:8000/venv/traffic/frontend/index.html"
+echo "4. Traffic Feed Dashboard:         http://localhost:8000/traffic_component/frontend/index.html"
 echo ""
 echo "Press Ctrl+C to stop all services."
 

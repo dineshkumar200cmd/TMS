@@ -29,9 +29,15 @@ class Traffic(Toplevel):
             time.sleep(5)
 
     def initUI(self,path,pic,xi,yi):
-        stgImg=Image.open(str((path-1)*5)+"//"+str(pic)+".jpg")
-        # paths="/home/iamrishav/PycharmProjects/HelloWorld/0"
-        stgImg=stgImg.resize((width,height),Image.LANCZOS)
+        folder = str((path-1)*5)
+        img_path = os.path.join("backend", folder, str(pic) + ".jpg")
+        try:
+            stgImg = Image.open(img_path)
+        except FileNotFoundError:
+            # Fallback for old structure if necessary
+            stgImg = Image.open(os.path.join(folder, str(pic) + ".jpg"))
+        
+        stgImg = stgImg.resize((width,height),Image.LANCZOS)
         stgImg2=ImageTk.PhotoImage(stgImg)
         # frame=Frame(master,height=800)
         # frame.pack(fill=X)

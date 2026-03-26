@@ -6,6 +6,9 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+# Use absolute path to ensure files are found regardless of where the script is run from
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Dictionary to map junction IDs to their names
 JUNCTIONS = {
     1: "Big Ben", 
@@ -33,7 +36,7 @@ def get_data(timeframe):
     """
     try:
         # Construct the path to the CSV file
-        csv_path = os.path.join(str(timeframe), f"output_{timeframe}.csv")
+        csv_path = os.path.join(BASE_DIR, str(timeframe), f"output_{timeframe}.csv")
         data = pd.read_csv(csv_path, header=None)
         
         # Structure the response
@@ -54,7 +57,7 @@ def get_data(timeframe):
 def serve_image(timeframe, junction_id):
     """Serve the image for a specific junction and timeframe."""
     try:
-        image_path = os.path.join(str(timeframe), f"{junction_id}.jpg")
+        image_path = os.path.join(BASE_DIR, str(timeframe), f"{junction_id}.jpg")
         return send_file(image_path, mimetype='image/jpeg')
     except Exception as e:
         return jsonify({"error": str(e)}), 404

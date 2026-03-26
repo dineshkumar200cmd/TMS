@@ -13,7 +13,7 @@ start /B venv\Scripts\python smart_tms\backend\app.py
 
 :: Start Traffic Feed Backend
 echo Starting Traffic Feed Backend (Port 5001)...
-start /B venv\Scripts\python venv\traffic\backend\app.py
+start /B venv\Scripts\python traffic_component\backend\app.py
 
 echo ✅ All services started successfully!
 echo.
@@ -21,7 +21,7 @@ echo 🔗 Access the dashboards here:
 echo 1. Top-Down 3D Simulation:       http://localhost:8000/traffic_3d.html
 echo 2. Traffic Video + AI signals:     http://localhost:8000/traffic_video.html
 echo 3. Smart TMS Dashboard:            http://localhost:8000/smart_tms/frontend/index.html
-echo 4. Traffic Feed Dashboard:         http://localhost:8000/venv/traffic/frontend/index.html
+echo 4. Traffic Feed Dashboard:         http://localhost:8000/traffic_component/frontend/index.html
 echo.
 echo Close this window to stop all services (or use Task Manager to kill Python processes).
 pause
