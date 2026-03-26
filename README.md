@@ -28,38 +28,41 @@ Suggested target folders if you continue organizing:
 
 ## Setup and Running
 
-### New Device Setup
+### 1. New Device Setup
 
-To run this project on a new device, follow these steps:
+#### 🐧 Linux / macOS
+```bash
+git clone https://github.com/dineshkumar200cmd/TMS.git
+cd TMS
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-1.  **Clone the Repository**:
-    ```bash
-    git clone https://github.com/dineshkumar200cmd/TMS.git
-    cd TMS
-    ```
+#### 🪟 Windows
+```powershell
+git clone https://github.com/dineshkumar200cmd/TMS.git
+cd TMS
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-2.  **Create a Virtual Environment**:
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
+### 2. How to Run
 
-3.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-### How to Run
-
-You can start all services (backends and dashboards) using the included helper script:
-
+#### 🐧 Linux / macOS
 ```bash
 chmod +x run.sh
 ./run.sh
 ```
 
-### Accessing Dashboards
+#### 🪟 Windows
+Double-click `run.bat` or run:
+```cmd
+run.bat
+```
 
+### 3. Accessing Dashboards
 - **3D Traffic Simulation**: [http://localhost:8000/traffic_3d.html](http://localhost:8000/traffic_3d.html)
 - **AI Signal Dashboard**: [http://localhost:8000/traffic_video.html](http://localhost:8000/traffic_video.html)
 - **Smart TMS Dashboard**: [http://localhost:8000/smart_tms/frontend/index.html](http://localhost:8000/smart_tms/frontend/index.html)
